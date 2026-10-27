@@ -219,7 +219,7 @@ homepage 使用固定 key，后台不能随意改区块顺序。各对象都有 
 | homepage.gallery | workIds:string[] | H06；最多16项；数组顺序是画廊顺序 |
 | homepage.cases | items:object[] | H07；最多3项，每项workId、summaryOverride最多80字 |
 | homepage.capabilities | items:object[] | H08；最多3项，每项title最多20字、description最多100字 |
-| homepage.closing | title:string、showDecoration:boolean、iconKeys:string[] | H09；装饰图标最多8项，iconKeys取固定图标名 |
+| homepage.closing | title:string、showDecoration:boolean、iconKeys:string[] | H09；装饰图标最多8项，iconKeys取固定图标名star/circle/diamond/wave/flower/arrow |
 
 Point 为 {x:number,y:number}，范围0–1。卡片和画廊的封面读取相应作品已发布内容的 coverImageId，不能读作品草稿。品牌联系信息只取 contact 一份，不在页脚和首页各存邮箱。
 

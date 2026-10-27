@@ -1,0 +1,14 @@
+/storage/
+/node_modules/
+/apps/*/node_modules/
+/apps/*/.next/
+/apps/*/target/
+/apps/*/coverage/
+/.superpowers/
+/.env
+/.env.*
+!/.env.example
+/test-results/
+/playwright-report/
+*.log
+.DS_Store

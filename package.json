@@ -1,0 +1,15 @@
+{
+  "name": "jingxi-workspace",
+  "private": true,
+  "scripts": {
+    "test": "npm run test:scripts && npm --prefix apps/web test && bash scripts/test-api.sh",
+    "test:scripts": "node --test tests/*.test.mjs",
+    "test:e2e": "playwright test",
+    "build": "npm --prefix apps/web run build && bash scripts/test-api.sh package",
+    "docker:up": "bash scripts/local-up.sh",
+    "dev": "npm --prefix apps/web run dev"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}

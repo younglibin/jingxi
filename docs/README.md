@@ -4,9 +4,13 @@
 
 | 资料 | 作用 | 状态 |
 | --- | --- | --- |
-| [技术主方案](superpowers/specs/2026-10-27-portfolio-technical-design.md) | Java 前后端分离、本地 JSON 持久化、单实例写入 | 技术方案评审稿，未开始开发 |
-| [数据与接口契约](architecture/data-api-contract.md) | 5 个逻辑模型、逐字段字典、首图/顺序、JSON 示例与 API | 待实施的接口设计 |
-| [部署与验证方案](architecture/deployment-and-verification.md) | 项目目录、单文件保存、图片权限、外部备份与验证 | 尚未部署或运行功能测试 |
+| [本地 Docker 运行说明](LOCAL_DOCKER.md) | 启动、账号初始化、测试、备份与恢复 | 配置已提供；实际 Docker 部署待验证 |
+| [开发与验证记录](testing/implementation-progress.md) | TDD、测试结果、评审修复与环境限制 | 当前实施状态入口 |
+| [实现评审](reviews/2026-10-27-implementation-review.md) | 四项重要问题、回归与复核结论 | 已关闭重要问题，Docker运行未验证 |
+| [技术主方案](superpowers/specs/2026-10-27-portfolio-technical-design.md) | Java 前后端分离、本地 JSON 持久化、单实例写入 | 评审基线；代码已实施 |
+| [数据与接口契约](architecture/data-api-contract.md) | 5 个逻辑模型、逐字段字典、首图/顺序、JSON 示例与 API | 配合 runtime-api 实施 |
+| [运行接口形状](../contracts/runtime-api.md) | 前后端实际请求与响应约定 | 代码接口合同 |
+| [部署与验证方案](architecture/deployment-and-verification.md) | 项目目录、单文件保存、图片权限、外部备份与验证 | 验收目标；实际结果见验证记录 |
 | [技术方案评审记录](reviews/2026-10-27-technical-design-review.md) | 独立评审意见、修正与未决事项 | 文档评审结果 |
 | [模块需求说明 v0.2](requirements/module-requirements-v0.2.md) | 页面职责、24 个模块、字段规则、异常与验收条件 | 需求评审基线，Markdown 由原 Word 转换 |
 | [原始 Word 文档](requirements/作品展示网站前期设计与分析.docx) | 保留原始版式和完整附件 | 2026-10-25 需求细化版，原文件未改写 |
@@ -31,4 +35,4 @@
 
 需求正文变化时同步更新 Markdown，并注明版本和评审结论。原始文档作为版本归档保留。设计变化应先修订 Figma，再更新交付说明中的对应规则和链接；页面高度随内容和自动布局变化，不固定抄写旧数值。
 
-后续开发代码与上述文档共用本仓库。当前没有应用构建、运行或部署命令。
+开发代码与上述文档共用本仓库。运行命令见根目录 README 和本地 Docker 运行说明。历史设计文档中的“未开发”描述仅代表当时阶段，不代表当前代码状态。
