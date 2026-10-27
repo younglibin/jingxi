@@ -11,17 +11,26 @@ git checkout codex/tdd-file-portfolio
 bash scripts/local-up.sh
 ```
 
-已有本仓库时进入其根目录即可。启动前打开 Docker Desktop。首次运行输入管理员密码两次；要求至少 12 个字符且 UTF-8 编码不超过 72 字节。用户名默认 `admin`，需要更改可先执行 `export ADMIN_USERNAME=你的英文用户名`。密码不会明文写入文件，生成的 BCrypt 哈希保存在 `.env`，不要提交或转发该文件。
+已有本仓库时先更新开发分支，再启动。如果已有 `.env` 保存了旧端口，可用环境变量覆盖本次启动端口：
+
+```bash
+git fetch origin
+git switch codex/tdd-file-portfolio
+git pull --ff-only origin codex/tdd-file-portfolio
+PORT=18080 bash scripts/local-up.sh
+```
+
+后续可将 `.env` 的 `PORT` 改为 `18080`，保存默认端口。启动前打开 Docker Desktop。首次运行输入管理员密码两次；要求至少 12 个字符且 UTF-8 编码不超过 72 字节。用户名默认 `admin`，需要更改可先执行 `export ADMIN_USERNAME=你的英文用户名`。密码不会明文写入文件，生成的 BCrypt 哈希保存在 `.env`，不要提交或转发该文件。
 
 首次构建需下载 Maven/npm 依赖和基础镜像。脚本构建时运行 Java 与前端测试，随后启动服务并等待健康检查。默认入口：
 
 | 地址 | 用途 |
 | --- | --- |
-| http://localhost:8080 | 首页、作品、关于联系 |
-| http://localhost:8080/admin | 登录与管理后台 |
-| http://localhost:8080/api/health | API 健康检查 |
+| http://localhost:18080 | 首页、作品、关于联系 |
+| http://localhost:18080/admin | 登录与管理后台 |
+| http://localhost:18080/api/health | API 健康检查 |
 
-仅向本机 `127.0.0.1` 绑定端口，不开放公网。要改端口，在 `.env` 修改 `PORT=8080` 后重新执行启动脚本。本地 HTTP 使用 `COOKIE_SECURE=false`；将来部署 HTTPS 时需另行设置安全 Cookie 和反向代理，本次不自动发布网站。
+仅向本机 `127.0.0.1` 绑定端口，不开放公网。要改端口，在 `.env` 修改 `PORT=18080` 后重新执行启动脚本。本地 HTTP 使用 `COOKIE_SECURE=false`；将来部署 HTTPS 时需另行设置安全 Cookie 和反向代理，本次不自动发布网站。
 
 ```bash
 docker compose ps

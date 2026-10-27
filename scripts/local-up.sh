@@ -25,7 +25,7 @@ if ! $has_hash; then
   [[ "$pass_hash" == \$2* ]] || { echo '密码哈希生成失败，未写入配置。' >&2; exit 1; }
   umask 077
   {
-    printf 'PORT=%s\n' "${PORT:-8080}"
+    printf 'PORT=%s\n' "${PORT:-18080}"
     printf 'ADMIN_USERNAME=%s\n' "$admin_user"
     printf "ADMIN_PASSWORD_HASH='%s'\n" "$pass_hash"
     printf 'LOCAL_UID=%s\nLOCAL_GID=%s\n' "$(id -u)" "$(id -g)"
@@ -34,5 +34,5 @@ if ! $has_hash; then
 fi
 docker compose config --quiet
 docker compose up -d --build --wait
-printf '\nDocker 服务已启动。访问端口以 .env 中 PORT 为准，默认 http://localhost:8080\n'
+printf '\nDocker 服务已启动。访问端口以 .env 中 PORT 为准，默认 http://localhost:18080\n'
 docker compose ps

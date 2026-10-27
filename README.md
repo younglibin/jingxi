@@ -10,7 +10,7 @@
 bash scripts/local-up.sh
 ```
 
-首次运行要求设置至少 12 位的管理员密码，脚本生成不入 Git 的 `.env`、构建镜像并等待三个服务健康。默认访问 `http://localhost:8080`，管理入口 `/admin`，用户名默认 `admin`。没有预置管理员密码。运行数据在项目的 `storage/`，更新镜像不会清空内容。
+首次运行要求设置至少 12 位的管理员密码，脚本生成不入 Git 的 `.env`、构建镜像并等待三个服务健康。默认访问 `http://localhost:18080`，管理入口 `/admin`，用户名默认 `admin`。没有预置管理员密码。运行数据在项目的 `storage/`，更新镜像不会清空内容。
 
 完整启动、测试、备份和恢复步骤见 [本地运行说明](docs/LOCAL_DOCKER.md)。本次执行环境无法访问 Docker 引擎，容器启动验收仍待在有 Docker 的本机执行；已完成的检查和限制见 [验证记录](docs/testing/implementation-progress.md)。
 
