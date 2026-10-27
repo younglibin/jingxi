@@ -4,9 +4,9 @@
 
 | 资料 | 作用 | 状态 |
 | --- | --- | --- |
-| [技术主方案](superpowers/specs/2026-10-27-portfolio-technical-design.md) | Java 前后端分离、同步发布、失败人工恢复与简化范围 | 技术方案评审稿，未开始开发 |
-| [数据与接口契约](architecture/data-api-contract.md) | 9 张业务表、版本校验、上传、列表和管理 API | 待实施的接口设计 |
-| [部署与验证方案](architecture/deployment-and-verification.md) | 单机运行、外部备份、必要验收和恢复 | 尚未部署或运行功能测试 |
+| [技术主方案](superpowers/specs/2026-10-27-portfolio-technical-design.md) | Java 前后端分离、本地 JSON 持久化、单实例写入 | 技术方案评审稿，未开始开发 |
+| [数据与接口契约](architecture/data-api-contract.md) | 5 个逻辑模型、逐字段字典、首图/顺序、JSON 示例与 API | 待实施的接口设计 |
+| [部署与验证方案](architecture/deployment-and-verification.md) | 项目目录、单文件保存、图片权限、外部备份与验证 | 尚未部署或运行功能测试 |
 | [技术方案评审记录](reviews/2026-10-27-technical-design-review.md) | 独立评审意见、修正与未决事项 | 文档评审结果 |
 | [模块需求说明 v0.2](requirements/module-requirements-v0.2.md) | 页面职责、24 个模块、字段规则、异常与验收条件 | 需求评审基线，Markdown 由原 Word 转换 |
 | [原始 Word 文档](requirements/作品展示网站前期设计与分析.docx) | 保留原始版式和完整附件 | 2026-10-25 需求细化版，原文件未改写 |
@@ -17,7 +17,7 @@
 
 ## 当前阶段
 
-需求与界面设计的用户评审已完成。技术方案遵循“简单网站，不要过度设计”：图片失败重传、同步事务发布、超时刷新确认、内存会话重启后重新登录、本地持久存图加机器外备份。技术主方案第 11 节明确列出对原需求自动恢复条目的收敛，不能只读旧归档推断首期仍有任务与操作中心。
+需求与界面设计的用户评审已完成。最新技术方案为 V1.1：不使用关系数据库，Java 内存读取加项目 storage/data/store.json 落盘；图片放 originals、display、tmp 三类目录。作品、图片内容块、图片资源、分类、站点配置有逐字段说明；首图唯一，图文块统一排序。主方案第 10 节列出与旧设计的差异，旧归档中的数据库和任务机制不作为首期实现要求。
 
 ## 版本与使用顺序
 

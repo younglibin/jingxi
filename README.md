@@ -7,8 +7,9 @@
 1. [文档目录与版本说明](docs/README.md)
 2. [模块需求说明 v0.2](docs/requirements/module-requirements-v0.2.md)：8 个页面模板、24 个功能模块、数据规则与验收条件。
 3. [设计交付说明 V1.1](docs/design-handoff-v1.1.md)：Figma 入口、页面编号、尺寸、响应式规则、交互和待确认事项。
-4. [技术方案与评审入口](docs/superpowers/specs/2026-10-27-portfolio-technical-design.md)：前后端分离、Java 后端，按小型网站控制复杂度。
-5. [Figma V1.1 评审入口](https://www.figma.com/design/x9YTf9CS1R6DNi9NBUxCom?node-id=39-328)
+4. [技术方案与评审入口](docs/superpowers/specs/2026-10-27-portfolio-technical-design.md)：前后端分离、Java 后端，使用本地 JSON 文件和项目图片目录。
+5. [数据模型、字段与首图排序](docs/architecture/data-api-contract.md)：5 个逻辑模型与完整作品示例。
+6. [Figma V1.1 评审入口](https://www.figma.com/design/x9YTf9CS1R6DNi9NBUxCom?node-id=39-328)
 
 ## 当前设计方向
 
@@ -18,4 +19,4 @@
 
 ## 后续推进
 
-按需求评审、Figma 设计评审、技术方案、开发与验收推进。设计评审已完成；技术方案按单机、同步上传发布、基础版本检查和人工恢复收敛。后续代码继续使用本仓库，技术方案确认后再进入开发。
+按需求评审、Figma 设计评审、技术方案、开发与验收推进。设计评审已完成；技术方案按单机、本地 JSON 文件、项目内图片目录、首图和内容块排序收敛，不使用关系数据库。后续代码继续使用本仓库，技术方案确认后再进入开发。
