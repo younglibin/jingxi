@@ -1,0 +1,13 @@
+.git
+.superpowers
+**/node_modules
+**/.next
+**/target
+**/coverage
+storage
+.env
+.env.*
+!/.env.example
+playwright-report
+test-results
+docs/requirements

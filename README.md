@@ -1,6 +1,18 @@
 # 作品展示网站 jingxi
 
-用于管理作品展示网站的需求、设计交付文档和后续开发代码。需求与界面设计已由用户确认评审完成，当前进行技术方案设计与文档评审，尚未创建网站应用或部署。
+作品展示网站与单维护者后台。Java 21 管理本地 JSON 和图片，Next.js 提供公开页面与后台，Nginx 统一转发；不使用关系数据库或 Redis。图片、品牌和公司内容由维护者自行上传。
+
+## 本地 Docker 启动
+
+安装并启动 Docker Desktop，在仓库根目录执行：
+
+```bash
+bash scripts/local-up.sh
+```
+
+首次运行要求设置至少 12 位的管理员密码，脚本生成不入 Git 的 `.env`、构建镜像并等待三个服务健康。默认访问 `http://localhost:8080`，管理入口 `/admin`，用户名默认 `admin`。没有预置管理员密码。运行数据在项目的 `storage/`，更新镜像不会清空内容。
+
+完整启动、测试、备份和恢复步骤见 [本地运行说明](docs/LOCAL_DOCKER.md)。本次执行环境无法访问 Docker 引擎，容器启动验收仍待在有 Docker 的本机执行；已完成的检查和限制见 [验证记录](docs/testing/implementation-progress.md)。
 
 ## 阅读入口
 
@@ -17,6 +29,19 @@
 
 作品图片、品牌文字和公司信息由维护者提供，当前设计允许使用可替换占位。公开网站供访客浏览，管理后台供维护者上传作品和维护内容。
 
-## 后续推进
+## 代码与测试
 
-按需求评审、Figma 设计评审、技术方案、开发与验收推进。设计评审已完成；技术方案按单机、本地 JSON 文件、项目内图片目录、首图和内容块排序收敛，不使用关系数据库。后续代码继续使用本仓库，技术方案确认后再进入开发。
+`apps/api` 为 Java 后端，`apps/web` 为公开网站和管理界面，`infra` 为 Docker 与 Nginx 配置，`tests/e2e` 为真实 HTTP 流程测试。功能包括作品图文编辑、唯一首图与排序、草稿预览、发布下架、分类与站点设置。
+
+安装 Node 24、JDK 21 和 Maven 后：
+
+```bash
+npm ci
+npm --prefix apps/web ci
+npm test
+npm --prefix apps/web run typecheck
+npm run build
+bash scripts/e2e-api.sh
+```
+
+`npm test` 运行脚本、前端和后端测试；HTTP 流程脚本使用临时数据与专用测试账号，不修改 `storage/`。测试驱动开发的失败断言及修正记录在 [后端](docs/testing/backend-tdd.md) 和 [前端](docs/testing/frontend-tdd.md)。
