@@ -1,7 +1,9 @@
 "use client";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { request, errorMessage } from "@/lib/api";
 import type { Asset } from "@/lib/types";
+import { adminHelp } from "@/lib/admin-help";
+import { FieldHelp, SelectField } from "./fields";
 type Upload = {
   key: string;
   file: File;
@@ -10,6 +12,7 @@ type Upload = {
   asset?: Asset;
 };
 export function Uploads({ onAsset }: { onAsset: (a: Asset) => void }) {
+  const helpId = useId();
   const [rows, setRows] = useState<Upload[]>([]),
     controllers = useRef(new Map<string, AbortController>()),
     generations = useRef(new Map<string, number>()),
@@ -79,16 +82,14 @@ export function Uploads({ onAsset }: { onAsset: (a: Asset) => void }) {
         add(Array.from(e.dataTransfer.files));
       }}
     >
-      <h3>上传项目图片</h3>
-      <p className="muted small">
-        JPEG / PNG / WebP · 单张20MB ·
-        一次最多10张。上传后选择“加入作品”，不会自动更改草稿。
-      </p>
+      <h3>上传图片资源</h3>
+      <FieldHelp id={helpId}>{adminHelp.admin.upload}</FieldHelp>
       <input
         type="file"
         accept="image/jpeg,image/png,image/webp"
         multiple
         aria-label="上传图片文件"
+        aria-describedby={helpId}
         onChange={(e) => {
           add(Array.from(e.target.files || []));
           e.target.value = "";
@@ -135,26 +136,27 @@ export function AssetSelector({
   value,
   onChange,
   assets,
+  help,
 }: {
   label: string;
   value: string | null;
   onChange: (id: string | null) => void;
   assets: Asset[];
+  help?: string;
 }) {
   return (
-    <label className="field">
-      {label}
-      <select
-        value={value || ""}
-        onChange={(e) => onChange(e.target.value || null)}
-      >
-        <option value="">未选择图片</option>
-        {assets.map((a) => (
-          <option key={a.id} value={a.id}>
-            {a.originalName} · {a.width}×{a.height}
-          </option>
-        ))}
-      </select>
-    </label>
+    <SelectField
+      label={label}
+      help={help}
+      value={value || ""}
+      onChange={(value) => onChange(value || null)}
+    >
+      <option value="">未选择图片</option>
+      {assets.map((a) => (
+        <option key={a.id} value={a.id}>
+          {a.originalName} · {a.width}×{a.height}
+        </option>
+      ))}
+    </SelectField>
   );
 }

@@ -2,7 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { Work, Category, Asset } from "@/lib/types";
 import { request, login, errorMessage, ApiError } from "@/lib/api";
-import { Field, SaveForm } from "./fields";
+import { CheckField, Field, FieldHelp, SaveForm, SelectField } from "./fields";
+import { adminHelp } from "@/lib/admin-help";
 import { WorkEditor } from "./work-editor";
 import { SettingsEditor, type SiteConfig } from "./settings-editor";
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -108,9 +109,15 @@ export function LoginForm() {
         </a>
         <h1>欢迎回来。</h1>
         <p className="muted">登录以管理作品与网站内容。</p>
-        <Field label="用户名" value={username} onChange={setUsername} />
+        <Field
+          label="用户名"
+          help={adminHelp.admin.username}
+          value={username}
+          onChange={setUsername}
+        />
         <Field
           label="密码"
+          help={adminHelp.admin.password}
           type="password"
           value={password}
           onChange={setPassword}
@@ -262,9 +269,7 @@ export function WorksAdmin() {
       {order && (
         <section className="panel">
           <h2>完整公开作品顺序</h2>
-          <p className="muted small">
-            以下为全部公开作品，保存时提交完整集合。
-          </p>
+          <FieldHelp>{adminHelp.admin.order}</FieldHelp>
           <ol className="order-list">
             {order.workIds.map((id, i) => (
               <li key={id}>
@@ -329,45 +334,44 @@ export function WorksAdmin() {
         <div className="toolbar">
           <Field
             label="搜索作品"
+            help={adminHelp.admin.search}
             value={q}
             onChange={(v) => {
               setQ(v);
               setPage(1);
             }}
           />
-          <label className="field">
-            分类
-            <select
-              value={category}
-              onChange={(e) => {
-                setCategory(e.target.value);
-                setPage(1);
-              }}
-            >
-              <option value="">全部分类</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="field">
-            作品状态
-            <select
-              value={state}
-              onChange={(e) => {
-                setState(e.target.value);
-                setPage(1);
-              }}
-            >
-              <option value="">全部状态</option>
-              <option value="draft">草稿</option>
-              <option value="published">已发布</option>
-              <option value="unpublished">已下架</option>
-              <option value="recycled">回收站</option>
-            </select>
-          </label>
+          <SelectField
+            label="分类"
+            help={adminHelp.admin.filterCategory}
+            value={category}
+            onChange={(value) => {
+              setCategory(value);
+              setPage(1);
+            }}
+          >
+            <option value="">全部分类</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </SelectField>
+          <SelectField
+            label="作品状态"
+            help={adminHelp.admin.filterState}
+            value={state}
+            onChange={(value) => {
+              setState(value);
+              setPage(1);
+            }}
+          >
+            <option value="">全部状态</option>
+            <option value="draft">草稿</option>
+            <option value="published">已发布</option>
+            <option value="unpublished">已下架</option>
+            <option value="recycled">回收站</option>
+          </SelectField>
         </div>
         <div className="table-wrap" aria-busy={busy}>
           <table className="admin-table">
@@ -588,9 +592,15 @@ export function CategoriesAdmin() {
           }}
         >
           <div className="field-row">
-            <Field label="分类名称" value={name} onChange={setName} />
+            <Field
+              label="分类名称"
+              help={adminHelp.category.name}
+              value={name}
+              onChange={setName}
+            />
             <Field
               label="分类访问标识（创建后固定）"
+              help={adminHelp.category.slug}
               value={slug}
               onChange={setSlug}
             />
@@ -634,6 +644,11 @@ function CategoryEditor({
     <section className="category-item">
       <SaveForm
         label={`分类名称：${c.slug}`}
+        help={
+          c.system
+            ? "系统“其他”分类用于承接未指定分类的作品，名称固定，保持启用。"
+            : adminHelp.category.name
+        }
         initial={c.name}
         onSave={async (name) => {
           await request(`/api/admin/v1/categories/${c.id}`, {
@@ -651,25 +666,25 @@ function CategoryEditor({
         <div className="field-row">
           <Field
             label="显示顺序"
+            help={adminHelp.category.order}
             type="number"
             value={order}
             onChange={(v) => setOrder(Number(v))}
           />
-          <label className="check">
-            <input
-              type="checkbox"
-              disabled={c.system}
-              checked={enabled}
-              onChange={(e) => setEnabled(e.target.checked)}
-            />
-            启用分类{c.system ? "（系统分类）" : ""}
-          </label>
+          <CheckField
+            label={`启用分类${c.system ? "（系统分类）" : ""}`}
+            help={adminHelp.category.enabled}
+            disabled={c.system}
+            checked={enabled}
+            onChange={setEnabled}
+          />
         </div>
         <p className="small muted">
           草稿引用 {c.draftReferenceCount || 0} / 公开引用{" "}
           {c.publishedReferenceCount || 0} / 配置引用{" "}
           {c.siteReferenceCount || 0}
         </p>
+        <FieldHelp>{adminHelp.category.references}</FieldHelp>
       </SaveForm>
       {!c.system && (
         <>
@@ -698,6 +713,7 @@ function CategoryEditor({
           <div className="selector">
             <select
               aria-label={`迁移${c.name}至分类`}
+              aria-describedby={`category-migration-${c.id}`}
               value={target}
               onChange={(e) => setTarget(e.target.value)}
             >
@@ -747,9 +763,9 @@ function CategoryEditor({
               迁移关联草稿
             </button>
           </div>
-          <p className="small muted">
-            迁移仅更新草稿，公开作品需分别发布新分类；网站配置中的分类入口也需移除后才能删除。
-          </p>
+          <FieldHelp id={`category-migration-${c.id}`}>
+            {adminHelp.category.migration}
+          </FieldHelp>
         </>
       )}
       {error && (
