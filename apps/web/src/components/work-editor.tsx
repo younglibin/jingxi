@@ -9,7 +9,8 @@ import {
   type Content,
 } from "@/lib/editor";
 import { request, errorMessage, ApiError } from "@/lib/api";
-import { Field } from "./fields";
+import { Field, FieldHelp, SelectField } from "./fields";
+import { adminHelp } from "@/lib/admin-help";
 import { CoverImage } from "./cards";
 import { Uploads, AssetSelector } from "./uploads";
 export function WorkEditor({
@@ -246,6 +247,9 @@ export function WorkEditor({
           {dirty ? "有未保存修改" : `草稿版本 ${work.draftRevision}`}
         </span>
       </div>
+      <div className="admin-guide">
+        <FieldHelp>{adminHelp.admin.workPublish}</FieldHelp>
+      </div>
       {error && (
         <p role="alert" className="error">
           {error}
@@ -279,12 +283,14 @@ export function WorkEditor({
         <div className="panel">
           <Field
             label="作品标题 *"
+            help={adminHelp.work.title}
             value={content.title}
             onChange={(v) => field("title", v)}
           />
           {validation.title && <p className="error">{validation.title}</p>}
           <Field
             label="访问标识 *"
+            help={adminHelp.work.slug}
             value={content.slug}
             disabled={!!work.lockedSlug}
             onChange={(v) => field("slug", v)}
@@ -294,26 +300,26 @@ export function WorkEditor({
           )}
           {validation.slug && <p className="error">{validation.slug}</p>}
           <div className="field-row">
-            <label className="field">
-              作品分类 *
-              <select
-                value={content.categoryId}
-                onChange={(e) => field("categoryId", e.target.value)}
-              >
-                {categories.map((c) => (
-                  <option
-                    key={c.id}
-                    value={c.id}
-                    disabled={!c.enabled && content.categoryId !== c.id}
-                  >
-                    {c.name}
-                    {!c.enabled ? "（停用）" : ""}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <SelectField
+              label="作品分类 *"
+              help={adminHelp.work.category}
+              value={content.categoryId}
+              onChange={(value) => field("categoryId", value)}
+            >
+              {categories.map((c) => (
+                <option
+                  key={c.id}
+                  value={c.id}
+                  disabled={!c.enabled && content.categoryId !== c.id}
+                >
+                  {c.name}
+                  {!c.enabled ? "（停用）" : ""}
+                </option>
+              ))}
+            </SelectField>
             <Field
               label="年份"
+              help={adminHelp.work.year}
               type="number"
               value={content.year ?? ""}
               onChange={(v) => field("year", v ? Number(v) : null)}
@@ -321,6 +327,7 @@ export function WorkEditor({
           </div>
           <Field
             label="项目摘要"
+            help={adminHelp.work.summary}
             value={content.summary}
             multiline
             onChange={(v) => field("summary", v)}
@@ -328,19 +335,19 @@ export function WorkEditor({
           <div className="field-row">
             <Field
               label="客户"
+              help={adminHelp.work.client}
               value={content.client}
               onChange={(v) => field("client", v)}
             />
             <Field
               label="承担角色"
+              help={adminHelp.work.role}
               value={content.role}
               onChange={(v) => field("role", v)}
             />
           </div>
           <h2>正文内容</h2>
-          <p className="muted small">
-            首图固定在第一项；图文共用一个顺序。最多30块。
-          </p>
+          <FieldHelp>{adminHelp.work.blocks}</FieldHelp>
           {content.blocks.map((b, i) => (
             <section
               key={b.id}
@@ -399,6 +406,7 @@ export function WorkEditor({
               {b.type === "text" ? (
                 <Field
                   label={`文字内容 ${i + 1}`}
+                  help={adminHelp.work.text}
                   value={b.text || ""}
                   multiline
                   onChange={(v) =>
@@ -421,6 +429,7 @@ export function WorkEditor({
                   )}
                   <Field
                     label={`图片替代文字 ${i + 1}`}
+                    help={adminHelp.work.alt}
                     value={b.alt || ""}
                     onChange={(v) =>
                       field(
@@ -433,6 +442,7 @@ export function WorkEditor({
                   />
                   <Field
                     label={`图片图注 ${i + 1}`}
+                    help={adminHelp.work.caption}
                     value={b.caption || ""}
                     onChange={(v) =>
                       field(
@@ -445,6 +455,7 @@ export function WorkEditor({
                   />
                   <AssetSelector
                     label={`替换图片 ${i + 1}`}
+                    help={adminHelp.work.replace}
                     value={b.assetId || null}
                     assets={assets}
                     onChange={(id) => replace(b.id, id)}
@@ -517,9 +528,11 @@ export function WorkEditor({
                   />
                 </div>
                 <p className="muted small">3:4封面 · 原图完整保留</p>
-                <label className="field">
-                  封面缩放（1–3）
+                <div className="field">
+                  <label htmlFor="cover-zoom">封面缩放（1–3）</label>
                   <input
+                    id="cover-zoom"
+                    aria-describedby="cover-zoom-help"
                     type="range"
                     min="1"
                     max="3"
@@ -527,15 +540,20 @@ export function WorkEditor({
                     defaultValue="1"
                     onChange={(e) => zoomCover(e.target.value)}
                   />
-                </label>
+                  <FieldHelp id="cover-zoom-help">
+                    {adminHelp.work.zoom}
+                  </FieldHelp>
+                </div>
                 <Field
                   label="水平焦点（0–1）"
+                  help={adminHelp.work.focalX}
                   value={content.coverFocal?.x ?? 0.5}
                   type="number"
                   onChange={(v) => focal("x", v)}
                 />
                 <Field
                   label="垂直焦点（0–1）"
+                  help={adminHelp.work.focalY}
                   value={content.coverFocal?.y ?? 0.5}
                   type="number"
                   onChange={(v) => focal("y", v)}
@@ -545,6 +563,7 @@ export function WorkEditor({
                     <p className="small muted">裁剪区域（0–1）</p>
                     <Field
                       label="裁剪横坐标"
+                      help={adminHelp.work.cropX}
                       type="number"
                       value={content.coverCrop.x}
                       onChange={(v) =>
@@ -559,6 +578,7 @@ export function WorkEditor({
                     />
                     <Field
                       label="裁剪纵坐标"
+                      help={adminHelp.work.cropY}
                       type="number"
                       value={content.coverCrop.y}
                       onChange={(v) =>
@@ -640,6 +660,7 @@ function RelatedSelector({
   return (
     <div className="settings-section">
       <h3>相关作品（最多3项）</h3>
+      <FieldHelp id="related-works-help">{adminHelp.work.related}</FieldHelp>
       {value.map((id, i) => (
         <div className="selected-work" key={id}>
           <span>
@@ -662,6 +683,7 @@ function RelatedSelector({
       ))}
       <select
         aria-label="添加相关作品"
+        aria-describedby="related-works-help"
         value=""
         disabled={value.length >= 3}
         onChange={(e) => {

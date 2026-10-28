@@ -769,6 +769,30 @@ figure {
 .field textarea {
   line-height: 1.7;
 }
+.field-help {
+  margin: 0;
+  color: #62675f;
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.check-field {
+  margin-bottom: 24px;
+}
+.check-field .check {
+  margin-bottom: 6px;
+}
+.admin-guide {
+  margin: 16px 0 24px;
+  padding: 14px 16px;
+  background: var(--paper);
+  border-left: 3px solid var(--line);
+  border-radius: 8px;
+}
+.settings-heading + .field-help,
+.icon-choices > .field-help {
+  margin-bottom: 16px;
+}
 .field-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -888,7 +912,7 @@ figure {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 24px;
 }
 .toolbar .field {
@@ -1558,6 +1582,9 @@ figure {
 }
 .icon-choices .check {
   margin: 4px;
+}
+.icon-choices > .field-help {
+  flex-basis: 100%;
 }
 .closing-decoration {
   display: flex;

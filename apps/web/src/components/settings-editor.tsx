@@ -3,7 +3,8 @@ import { useState } from "react";
 import { decorationIcons } from "@/lib/icons";
 import type { Work, Category, Asset } from "@/lib/types";
 import { request, errorMessage } from "@/lib/api";
-import { Field } from "./fields";
+import { CheckField, Field, FieldHelp, SelectField } from "./fields";
+import { adminHelp } from "@/lib/admin-help";
 import { Uploads, AssetSelector } from "./uploads";
 export type SiteConfig = {
   draftRevision: number;
@@ -17,12 +18,14 @@ function OrderedPicker({
   onChange,
   options,
   limit,
+  help,
 }: {
   label: string;
   value: string[];
   onChange: (ids: string[]) => void;
   options: { id: string; name: string }[];
   limit: number;
+  help: string;
 }) {
   return (
     <div>
@@ -64,25 +67,24 @@ function OrderedPicker({
           </button>
         </div>
       ))}
-      <label className="field">
-        添加{label}
-        <select
-          value=""
-          disabled={value.length >= limit}
-          onChange={(e) => {
-            if (e.target.value) onChange([...value, e.target.value]);
-          }}
-        >
-          <option value="">选择一项</option>
-          {options
-            .filter((o) => !value.includes(o.id))
-            .map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.name}
-              </option>
-            ))}
-        </select>
-      </label>
+      <SelectField
+        label={`添加${label}`}
+        help={help}
+        value=""
+        disabled={value.length >= limit}
+        onChange={(valueToAdd) => {
+          if (valueToAdd) onChange([...value, valueToAdd]);
+        }}
+      >
+        <option value="">选择一项</option>
+        {options
+          .filter((o) => !value.includes(o.id))
+          .map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.name}
+            </option>
+          ))}
+      </SelectField>
     </div>
   );
 }
@@ -169,26 +171,42 @@ export function SettingsEditor({
       setBusy(false);
     }
   };
-  const sectionTitle = (key: string, title: string, fixed = false) => (
-    <div className="settings-heading">
-      <h2>{title}</h2>
-      {fixed ? (
-        <span className="badge">固定启用</span>
-      ) : (
-        <label className="check">
-          <input
-            type="checkbox"
-            checked={h[key].enabled}
-            onChange={(e) => set(`homepage.${key}.enabled`, e.target.checked)}
-          />
-          已启用
-        </label>
-      )}
-    </div>
+  const sectionTitle = (
+    key: keyof typeof adminHelp.sections,
+    title: string,
+    fixed = false,
+  ) => (
+    <>
+      <div className="settings-heading">
+        <h2>{title}</h2>
+        {fixed ? (
+          <span className="badge">固定启用</span>
+        ) : (
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={h[key].enabled}
+              aria-describedby={`homepage-${key}-help`}
+              onChange={(e) => set(`homepage.${key}.enabled`, e.target.checked)}
+            />
+            启用此区块
+          </label>
+        )}
+      </div>
+      <FieldHelp id={`homepage-${key}-help`}>
+        {adminHelp.sections[key]}
+      </FieldHelp>
+    </>
   );
-  const picker = (key: string, field: string, label: string, limit: number) => (
+  const picker = (
+    key: "hero" | "featured" | "statement" | "gallery",
+    field: string,
+    label: string,
+    limit: number,
+  ) => (
     <OrderedPicker
       label={label}
+      help={adminHelp.pickers[key]}
       value={h[key][field] || []}
       onChange={(v) => set(`homepage.${key}.${field}`, v)}
       options={workOptions}
@@ -201,6 +219,7 @@ export function SettingsEditor({
         <Field
           key={axis}
           label={`${label}${axis === "x" ? "水平" : "垂直"}焦点（0–1）`}
+          help={`${label}在裁切时优先保留的位置，发布后仅影响${label.startsWith("桌面") ? "电脑端" : "手机端"}横幅取景。${axis === "x" ? "0靠左，0.5居中，1靠右。" : "0靠上，0.5居中，1靠下。"}`}
           type="number"
           value={path.split(".").reduce((o, k) => o[k], content)[axis]}
           onChange={(v) =>
@@ -240,6 +259,9 @@ export function SettingsEditor({
           {dirty ? "有未保存修改" : `版本 ${config.draftRevision}`}
         </span>
       </div>
+      <div className="admin-guide">
+        <FieldHelp>{adminHelp.admin.sitePublish}</FieldHelp>
+      </div>
       {error && (
         <p role="alert" className="error">
           {error}
@@ -267,43 +289,51 @@ export function SettingsEditor({
           <h2>品牌与联系</h2>
           <Field
             label="品牌名称 *"
+            help={adminHelp.site.name}
             value={content.brand.name}
             onChange={(v) => set("brand.name", v)}
           />
           <Field
             label="品牌简介"
+            help={adminHelp.site.tagline}
             value={content.brand.tagline}
             onChange={(v) => set("brand.tagline", v)}
           />
           <AssetSelector
             label="品牌标志"
+            help={adminHelp.site.logo}
             assets={assets}
             value={content.brand.logoAssetId}
             onChange={(v) => set("brand.logoAssetId", v)}
           />
           <Field
             label="关于介绍"
+            help={adminHelp.site.about}
             value={content.about.description}
             multiline
             onChange={(v) => set("about.description", v)}
           />
           <AssetSelector
             label="关于主图"
+            help={adminHelp.site.aboutImage}
             assets={assets}
             value={content.about.mainAssetId}
             onChange={(v) => set("about.mainAssetId", v)}
           />
           <h3>团队图片</h3>
+          <FieldHelp>{adminHelp.site.teamImage}</FieldHelp>
           {content.about.teamImages.map((item: any, i: number) => (
             <div className="content-block" key={i}>
               <AssetSelector
                 label={`团队图片 ${i + 1}`}
+                help={adminHelp.site.teamImage}
                 assets={assets}
                 value={item.assetId}
                 onChange={(v) => set(`about.teamImages.${i}.assetId`, v)}
               />
               <Field
                 label={`团队图注 ${i + 1}`}
+                help={adminHelp.site.teamCaption}
                 value={item.caption || ""}
                 onChange={(v) => set(`about.teamImages.${i}.caption`, v)}
               />
@@ -347,27 +377,32 @@ export function SettingsEditor({
             <div className="field-row">
               <Field
                 label="公开邮箱"
+                help={adminHelp.site.email}
                 type="email"
                 value={content.contact.email}
                 onChange={(v) => set("contact.email", v)}
               />
               <Field
                 label="公开地址"
+                help={adminHelp.site.address}
                 value={content.contact.address}
                 onChange={(v) => set("contact.address", v)}
               />
             </div>
             <h3>社交链接</h3>
+            <FieldHelp>{adminHelp.site.linkUrl}</FieldHelp>
             {content.contact.links.map((link: any, i: number) => (
               <div className="content-block" key={i}>
                 <div className="field-row">
                   <Field
                     label={`链接名称 ${i + 1}`}
+                    help={adminHelp.site.linkName}
                     value={link.label}
                     onChange={(v) => set(`contact.links.${i}.label`, v)}
                   />
                   <Field
                     label={`HTTPS链接 ${i + 1}`}
+                    help={adminHelp.site.linkUrl}
                     type="url"
                     value={link.url}
                     onChange={(v) => set(`contact.links.${i}.url`, v)}
@@ -412,12 +447,14 @@ export function SettingsEditor({
             {sectionTitle("hero", "H01 首屏作品展开", true)}
             <Field
               label="首屏标题"
+              help={adminHelp.site.heroTitle}
               value={h.hero.title}
               multiline
               onChange={(v) => set("homepage.hero.title", v)}
             />
             <Field
               label="首屏说明"
+              help={adminHelp.site.heroDescription}
               value={h.hero.description}
               onChange={(v) => set("homepage.hero.description", v)}
             />
@@ -427,11 +464,13 @@ export function SettingsEditor({
             {sectionTitle("featured", "H02 阶梯式精选作品", true)}
             <Field
               label="精选标题"
+              help={adminHelp.site.featuredTitle}
               value={h.featured.title}
               onChange={(v) => set("homepage.featured.title", v)}
             />
             <Field
               label="精选说明"
+              help={adminHelp.site.featuredDescription}
               value={h.featured.description}
               onChange={(v) => set("homepage.featured.description", v)}
             />
@@ -441,39 +480,42 @@ export function SettingsEditor({
             {sectionTitle("banner", "H03 品牌视觉与合作标志")}
             <AssetSelector
               label="品牌横幅图片"
+              help={adminHelp.site.bannerImage}
               assets={assets}
               value={h.banner.assetId}
               onChange={(v) => set("homepage.banner.assetId", v)}
             />
             {point("桌面横幅", "homepage.banner.desktopFocal")}
             {point("手机横幅", "homepage.banner.mobileFocal")}
-            <label className="field">
-              横幅链接作品
-              <select
-                value={h.banner.linkedWorkId || ""}
-                onChange={(e) =>
-                  set("homepage.banner.linkedWorkId", e.target.value || null)
-                }
-              >
-                <option value="">无链接</option>
-                {workOptions.map((w) => (
-                  <option value={w.id} key={w.id}>
-                    {w.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <SelectField
+              label="横幅链接作品"
+              help={adminHelp.site.bannerWork}
+              value={h.banner.linkedWorkId || ""}
+              onChange={(value) =>
+                set("homepage.banner.linkedWorkId", value || null)
+              }
+            >
+              <option value="">无链接</option>
+              {workOptions.map((w) => (
+                <option value={w.id} key={w.id}>
+                  {w.name}
+                </option>
+              ))}
+            </SelectField>
             <h3>合作标志</h3>
+            <FieldHelp>{adminHelp.site.partnerLogo}</FieldHelp>
             {h.banner.logos.map((logo: any, i: number) => (
               <div className="content-block" key={i}>
                 <AssetSelector
                   label={`合作标志 ${i + 1}`}
+                  help={adminHelp.site.partnerLogo}
                   assets={assets}
                   value={logo.assetId}
                   onChange={(v) => set(`homepage.banner.logos.${i}.assetId`, v)}
                 />
                 <Field
                   label={`标志链接 ${i + 1}（选填HTTPS）`}
+                  help={adminHelp.site.partnerLink}
                   value={logo.url || ""}
                   onChange={(v) => set(`homepage.banner.logos.${i}.url`, v)}
                 />
@@ -516,6 +558,7 @@ export function SettingsEditor({
             {sectionTitle("statement", "H04 品牌主张")}
             <Field
               label="品牌主张文字"
+              help={adminHelp.site.statement}
               value={h.statement.text}
               multiline
               onChange={(v) => set("homepage.statement.text", v)}
@@ -526,6 +569,7 @@ export function SettingsEditor({
             {sectionTitle("categories", "H05 文件夹式作品分类")}
             <OrderedPicker
               label="首页分类"
+              help={adminHelp.pickers.categories}
               value={h.categories.categoryIds || []}
               onChange={(v) => set("homepage.categories.categoryIds", v)}
               options={categories.map((c) => ({ id: c.id, name: c.name }))}
@@ -540,6 +584,7 @@ export function SettingsEditor({
             {sectionTitle("cases", "H07 案例故事")}
             <OrderedPicker
               label="案例作品"
+              help={adminHelp.pickers.cases}
               value={h.cases.items.map((c: any) => c.workId)}
               onChange={(v) =>
                 set(
@@ -560,6 +605,7 @@ export function SettingsEditor({
               <Field
                 key={item.workId}
                 label={`案例摘要 ${i + 1}`}
+                help={adminHelp.site.caseSummary}
                 value={item.summaryOverride}
                 multiline
                 onChange={(v) =>
@@ -574,6 +620,7 @@ export function SettingsEditor({
               <div className="content-block" key={i}>
                 <Field
                   label={`能力标题 ${i + 1}`}
+                  help={adminHelp.site.capabilityTitle}
                   value={item.title}
                   onChange={(v) =>
                     set(`homepage.capabilities.items.${i}.title`, v)
@@ -581,6 +628,7 @@ export function SettingsEditor({
                 />
                 <Field
                   label={`能力说明 ${i + 1}`}
+                  help={adminHelp.site.capabilityDescription}
                   value={item.description}
                   multiline
                   onChange={(v) =>
@@ -628,27 +676,30 @@ export function SettingsEditor({
             {sectionTitle("closing", "H09 联系收尾", true)}
             <Field
               label="联系收尾标题"
+              help={adminHelp.site.closingTitle}
               value={h.closing.title}
               multiline
               onChange={(v) => set("homepage.closing.title", v)}
             />
-            <label className="check">
-              <input
-                type="checkbox"
-                checked={h.closing.showDecoration}
-                onChange={(e) =>
-                  set("homepage.closing.showDecoration", e.target.checked)
-                }
-              />
-              显示装饰图标
-            </label>
+            <CheckField
+              label="显示装饰图标"
+              help={adminHelp.site.decoration}
+              checked={h.closing.showDecoration}
+              onChange={(checked) =>
+                set("homepage.closing.showDecoration", checked)
+              }
+            />
             <fieldset className="icon-choices">
               <legend>装饰图标</legend>
+              <FieldHelp id="closing-icons-help">
+                {adminHelp.site.icons}
+              </FieldHelp>
               {decorationIcons.map((icon) => (
                 <label className="check" key={icon.key}>
                   <input
                     type="checkbox"
                     checked={(h.closing.iconKeys || []).includes(icon.key)}
+                    aria-describedby="closing-icons-help"
                     onChange={(e) =>
                       set(
                         "homepage.closing.iconKeys",

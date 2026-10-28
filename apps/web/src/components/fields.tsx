@@ -1,15 +1,30 @@
 "use client";
-import { useState, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
+export function FieldHelp({
+  id,
+  children,
+}: {
+  id?: string;
+  children: ReactNode;
+}) {
+  return (
+    <p className="field-help" id={id}>
+      {children}
+    </p>
+  );
+}
 export function SaveForm({
   initial,
   onSave,
   children,
   label = "标题",
+  help,
 }: {
   initial: string;
   onSave: (v: string) => Promise<void>;
   children?: ReactNode;
   label?: string;
+  help?: string;
 }) {
   const [value, setValue] = useState(initial),
     [error, setError] = useState(""),
@@ -29,10 +44,7 @@ export function SaveForm({
         }
       }}
     >
-      <label className="field">
-        {label}
-        <input value={value} onChange={(e) => setValue(e.target.value)} />
-      </label>
+      <Field label={label} value={value} onChange={setValue} help={help} />
       {children}
       {error && (
         <p role="alert" className="error">
@@ -52,6 +64,7 @@ export function Field({
   multiline = false,
   type = "text",
   disabled = false,
+  help,
 }: {
   label: string;
   value: string | number;
@@ -59,12 +72,17 @@ export function Field({
   multiline?: boolean;
   type?: string;
   disabled?: boolean;
+  help?: string;
 }) {
+  const id = useId();
+  const helpId = help ? `${id}-help` : undefined;
   return (
-    <label className="field">
-      {label}
+    <div className="field">
+      <label htmlFor={id}>{label}</label>
       {multiline ? (
         <textarea
+          id={id}
+          aria-describedby={helpId}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           rows={4}
@@ -72,12 +90,82 @@ export function Field({
         />
       ) : (
         <input
+          id={id}
+          aria-describedby={helpId}
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
         />
       )}
-    </label>
+      {help && <FieldHelp id={helpId}>{help}</FieldHelp>}
+    </div>
+  );
+}
+
+export function SelectField({
+  label,
+  value,
+  onChange,
+  children,
+  help,
+  disabled = false,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  children: ReactNode;
+  help?: string;
+  disabled?: boolean;
+}) {
+  const id = useId();
+  const helpId = help ? `${id}-help` : undefined;
+  return (
+    <div className="field">
+      <label htmlFor={id}>{label}</label>
+      <select
+        id={id}
+        value={value}
+        disabled={disabled}
+        aria-describedby={helpId}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        {children}
+      </select>
+      {help && <FieldHelp id={helpId}>{help}</FieldHelp>}
+    </div>
+  );
+}
+
+export function CheckField({
+  label,
+  checked,
+  onChange,
+  help,
+  disabled = false,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  help?: string;
+  disabled?: boolean;
+}) {
+  const id = useId();
+  const helpId = help ? `${id}-help` : undefined;
+  return (
+    <div className="check-field">
+      <label className="check" htmlFor={id}>
+        <input
+          id={id}
+          type="checkbox"
+          checked={checked}
+          disabled={disabled}
+          aria-describedby={helpId}
+          onChange={(e) => onChange(e.target.checked)}
+        />
+        {label}
+      </label>
+      {help && <FieldHelp id={helpId}>{help}</FieldHelp>}
+    </div>
   );
 }
