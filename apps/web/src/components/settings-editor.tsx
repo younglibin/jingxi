@@ -1,11 +1,30 @@
 "use client";
-import { useState } from "react";
+import { useId, useState } from "react";
+import { SettingsTabs } from "./settings-tabs";
 import { decorationIcons } from "@/lib/icons";
 import type { Work, Category, Asset } from "@/lib/types";
 import { request, errorMessage } from "@/lib/api";
 import { CheckField, Field, FieldHelp, SelectField } from "./fields";
 import { adminHelp } from "@/lib/admin-help";
 import { Uploads, AssetSelector } from "./uploads";
+const settingsGroups = [
+  ["brand", "品牌资料"],
+  ["about", "关于我们"],
+  ["contact", "联系方式"],
+  ["homepage", "首页模块"],
+  ["assets", "图片素材"],
+] as const;
+const homepageModules = [
+  ["hero", "首屏作品"],
+  ["featured", "精选作品"],
+  ["banner", "品牌横幅"],
+  ["statement", "品牌主张"],
+  ["categories", "作品分类"],
+  ["gallery", "作品画廊"],
+  ["cases", "案例故事"],
+  ["capabilities", "服务能力"],
+  ["closing", "联系收尾"],
+] as const;
 export type SiteConfig = {
   draftRevision: number;
   stateRevision: number;
@@ -99,6 +118,23 @@ export function SettingsEditor({
   categories: Category[];
   assets?: Asset[];
 }) {
+  const tabsId = useId();
+  const [activeTab, setActiveTab] = useState("brand");
+  const [activeModule, setActiveModule] = useState("hero");
+  const panelProps = (key: string) => ({
+    role: "tabpanel",
+    id: `${tabsId}-panel-${key}`,
+    "aria-labelledby": `${tabsId}-tab-${key}`,
+    hidden: activeTab !== key,
+    tabIndex: 0,
+  });
+  const moduleProps = (key: string) => ({
+    role: "tabpanel",
+    id: `${tabsId}-home-panel-${key}`,
+    "aria-labelledby": `${tabsId}-home-tab-${key}`,
+    hidden: activeModule !== key,
+    tabIndex: 0,
+  });
   const [config, setConfig] = useState(initial),
     [content, setContent] = useState(initial.draft.content),
     [assets, setAssets] = useState(initialAssets),
@@ -125,7 +161,10 @@ export function SettingsEditor({
       name: w.published?.content.title || w.draft.content.title || "未命名作品",
     }));
   const save = async () => {
-    if (!content.brand.name.trim()) throw new Error("请填写品牌名称");
+    if (!content.brand.name.trim()) {
+      setActiveTab("brand");
+      throw new Error("请填写品牌名称");
+    }
     const result = await request<SiteConfig>("/api/admin/v1/site/draft", {
       method: "PUT",
       body: JSON.stringify({
@@ -232,8 +271,10 @@ export function SettingsEditor({
   return (
     <>
       <h1>网站设置</h1>
-      <p className="muted">更新品牌内容和首页作品集合，保存后可预览再发布。</p>
-      <div className="actions">
+      <p className="muted">
+        按标签管理网站内容；切换标签保留当前修改，保存与发布会应用全部标签的配置。
+      </p>
+      <div className="actions settings-actions">
         <button
           className="button secondary"
           disabled={busy}
@@ -285,8 +326,16 @@ export function SettingsEditor({
         </p>
       )}
       <fieldset className="editor-controls" disabled={busy}>
-        <div className="panel">
-          <h2>品牌与联系</h2>
+        <SettingsTabs
+          id={tabsId}
+          label="网站设置分组"
+          tabs={settingsGroups}
+          value={activeTab}
+          onChange={setActiveTab}
+          disabled={busy}
+        />
+        <section {...panelProps("brand")} className="panel settings-tab-panel">
+          <h2>品牌资料</h2>
           <Field
             label="品牌名称 *"
             help={adminHelp.site.name}
@@ -306,6 +355,9 @@ export function SettingsEditor({
             value={content.brand.logoAssetId}
             onChange={(v) => set("brand.logoAssetId", v)}
           />
+        </section>
+        <section {...panelProps("about")} className="panel settings-tab-panel">
+          <h2>关于我们</h2>
           <Field
             label="关于介绍"
             help={adminHelp.site.about}
@@ -373,77 +425,102 @@ export function SettingsEditor({
           >
             添加团队图片
           </button>
-          <div className="settings-section">
-            <div className="field-row">
-              <Field
-                label="公开邮箱"
-                help={adminHelp.site.email}
-                type="email"
-                value={content.contact.email}
-                onChange={(v) => set("contact.email", v)}
-              />
-              <Field
-                label="公开地址"
-                help={adminHelp.site.address}
-                value={content.contact.address}
-                onChange={(v) => set("contact.address", v)}
-              />
-            </div>
-            <h3>社交链接</h3>
-            <FieldHelp>{adminHelp.site.linkUrl}</FieldHelp>
-            {content.contact.links.map((link: any, i: number) => (
-              <div className="content-block" key={i}>
-                <div className="field-row">
-                  <Field
-                    label={`链接名称 ${i + 1}`}
-                    help={adminHelp.site.linkName}
-                    value={link.label}
-                    onChange={(v) => set(`contact.links.${i}.label`, v)}
-                  />
-                  <Field
-                    label={`HTTPS链接 ${i + 1}`}
-                    help={adminHelp.site.linkUrl}
-                    type="url"
-                    value={link.url}
-                    onChange={(v) => set(`contact.links.${i}.url`, v)}
-                  />
-                </div>
-                <button
-                  onClick={() =>
-                    set(
-                      "contact.links",
-                      content.contact.links.filter(
-                        (_: unknown, j: number) => i !== j,
-                      ),
-                    )
-                  }
-                >
-                  移除链接
-                </button>
-              </div>
-            ))}
-            <button
-              className="button secondary"
-              disabled={content.contact.links.length >= 5}
-              onClick={() =>
-                set("contact.links", [
-                  ...content.contact.links,
-                  { label: "", url: "" },
-                ])
-              }
-            >
-              添加社交链接
-            </button>
+        </section>
+        <section
+          {...panelProps("contact")}
+          className="panel settings-tab-panel"
+        >
+          <h2>联系方式</h2>
+          <div className="field-row">
+            <Field
+              label="公开邮箱"
+              help={adminHelp.site.email}
+              type="email"
+              value={content.contact.email}
+              onChange={(v) => set("contact.email", v)}
+            />
+            <Field
+              label="公开地址"
+              help={adminHelp.site.address}
+              value={content.contact.address}
+              onChange={(v) => set("contact.address", v)}
+            />
           </div>
+          <h3>社交链接</h3>
+          <FieldHelp>{adminHelp.site.linkUrl}</FieldHelp>
+          {content.contact.links.map((link: any, i: number) => (
+            <div className="content-block" key={i}>
+              <div className="field-row">
+                <Field
+                  label={`链接名称 ${i + 1}`}
+                  help={adminHelp.site.linkName}
+                  value={link.label}
+                  onChange={(v) => set(`contact.links.${i}.label`, v)}
+                />
+                <Field
+                  label={`HTTPS链接 ${i + 1}`}
+                  help={adminHelp.site.linkUrl}
+                  type="url"
+                  value={link.url}
+                  onChange={(v) => set(`contact.links.${i}.url`, v)}
+                />
+              </div>
+              <button
+                onClick={() =>
+                  set(
+                    "contact.links",
+                    content.contact.links.filter(
+                      (_: unknown, j: number) => i !== j,
+                    ),
+                  )
+                }
+              >
+                移除链接
+              </button>
+            </div>
+          ))}
+          <button
+            className="button secondary"
+            disabled={content.contact.links.length >= 5}
+            onClick={() =>
+              set("contact.links", [
+                ...content.contact.links,
+                { label: "", url: "" },
+              ])
+            }
+          >
+            添加社交链接
+          </button>
+        </section>
+        <section {...panelProps("assets")} className="panel settings-tab-panel">
+          <h2>图片素材</h2>
+          <p className="muted">
+            先上传品牌标志、团队图片或横幅，再到对应标签中选用。上传完成后切换标签，素材会保留。
+          </p>
           <Uploads
             onAsset={(a) =>
               setAssets((old) => [a, ...old.filter((x) => x.id !== a.id)])
             }
           />
-        </div>
-        <div className="panel">
+        </section>
+        <section
+          {...panelProps("homepage")}
+          className="panel settings-tab-panel"
+        >
           <h2>首页模块</h2>
-          <section className="settings-section">
+          <p className="muted">选择要编辑的区块，每次只展开一个模块。</p>
+          <SettingsTabs
+            id={`${tabsId}-home`}
+            label="首页模块选择"
+            tabs={homepageModules}
+            value={activeModule}
+            onChange={setActiveModule}
+            disabled={busy}
+          />
+          <section
+            {...moduleProps("hero")}
+            className="settings-section settings-module"
+          >
             {sectionTitle("hero", "H01 首屏作品展开", true)}
             <Field
               label="首屏标题"
@@ -460,7 +537,10 @@ export function SettingsEditor({
             />
             {picker("hero", "workIds", "首屏作品", 8)}
           </section>
-          <section className="settings-section">
+          <section
+            {...moduleProps("featured")}
+            className="settings-section settings-module"
+          >
             {sectionTitle("featured", "H02 阶梯式精选作品", true)}
             <Field
               label="精选标题"
@@ -476,7 +556,10 @@ export function SettingsEditor({
             />
             {picker("featured", "workIds", "精选作品", 5)}
           </section>
-          <section className="settings-section">
+          <section
+            {...moduleProps("banner")}
+            className="settings-section settings-module"
+          >
             {sectionTitle("banner", "H03 品牌视觉与合作标志")}
             <AssetSelector
               label="品牌横幅图片"
@@ -554,7 +637,10 @@ export function SettingsEditor({
               添加合作标志
             </button>
           </section>
-          <section className="settings-section">
+          <section
+            {...moduleProps("statement")}
+            className="settings-section settings-module"
+          >
             {sectionTitle("statement", "H04 品牌主张")}
             <Field
               label="品牌主张文字"
@@ -565,7 +651,10 @@ export function SettingsEditor({
             />
             {picker("statement", "decorationWorkIds", "主张装饰作品", 3)}
           </section>
-          <section className="settings-section">
+          <section
+            {...moduleProps("categories")}
+            className="settings-section settings-module"
+          >
             {sectionTitle("categories", "H05 文件夹式作品分类")}
             <OrderedPicker
               label="首页分类"
@@ -576,11 +665,17 @@ export function SettingsEditor({
               limit={4}
             />
           </section>
-          <section className="settings-section">
+          <section
+            {...moduleProps("gallery")}
+            className="settings-section settings-module"
+          >
             {sectionTitle("gallery", "H06 双排作品画廊")}
             {picker("gallery", "workIds", "画廊作品", 16)}
           </section>
-          <section className="settings-section">
+          <section
+            {...moduleProps("cases")}
+            className="settings-section settings-module"
+          >
             {sectionTitle("cases", "H07 案例故事")}
             <OrderedPicker
               label="案例作品"
@@ -614,7 +709,10 @@ export function SettingsEditor({
               />
             ))}
           </section>
-          <section className="settings-section">
+          <section
+            {...moduleProps("capabilities")}
+            className="settings-section settings-module"
+          >
             {sectionTitle("capabilities", "H08 服务或能力")}
             {h.capabilities.items.map((item: any, i: number) => (
               <div className="content-block" key={i}>
@@ -672,7 +770,10 @@ export function SettingsEditor({
               添加能力
             </button>
           </section>
-          <section className="settings-section">
+          <section
+            {...moduleProps("closing")}
+            className="settings-section settings-module"
+          >
             {sectionTitle("closing", "H09 联系收尾", true)}
             <Field
               label="联系收尾标题"
@@ -717,7 +818,7 @@ export function SettingsEditor({
               ))}
             </fieldset>
           </section>
-        </div>
+        </section>
       </fieldset>
     </>
   );

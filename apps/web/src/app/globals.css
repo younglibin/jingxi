@@ -1620,3 +1620,77 @@ figure {
   margin: 0;
   min-width: 0;
 }
+
+.settings-actions {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: 16px 0;
+  background: var(--admin);
+  border-bottom: 1px solid var(--line);
+}
+.settings-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 12px;
+  margin-bottom: 12px;
+}
+.settings-tabs [role="tab"] {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 10px 20px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: white;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.settings-tabs [aria-selected="true"] {
+  color: var(--ink);
+  background: var(--lime);
+  border-color: var(--lime);
+  font-weight: 600;
+}
+.settings-tabs [role="tab"]:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+.settings-tabs [role="tab"]:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+.settings-tab-panel[hidden],
+.settings-module[hidden] {
+  display: none;
+}
+.settings-tab-panel > h2 {
+  margin-bottom: 24px;
+}
+.settings-module {
+  margin-top: 0;
+  padding-top: 24px;
+}
+.settings-tab-panel > .settings-tabs {
+  flex-wrap: wrap;
+}
+.category-link {
+  margin-bottom: 20px;
+  font-size: 13px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 767px) {
+  .settings-actions {
+    gap: 8px;
+    padding-block: 12px;
+  }
+  .settings-tabs [role="tab"] {
+    padding-inline: 14px;
+  }
+  .settings-tab-panel > .settings-tabs {
+    flex-wrap: nowrap;
+  }
+}

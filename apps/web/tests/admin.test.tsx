@@ -113,9 +113,13 @@ it("offers dedicated controls for all nine homepage modules and brand contact in
   expect(screen.getByRole("textbox", { name: "品牌名称 *" })).toHaveValue(
     "工作室",
   );
-  expect(screen.getByRole("textbox", { name: "公开邮箱" })).toBeInTheDocument();
-  expect(screen.getByText("H01 首屏作品展开")).toBeInTheDocument();
-  expect(screen.getByText("H09 联系收尾")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("tab", { name: "联系方式" }));
+  expect(screen.getByRole("textbox", { name: "公开邮箱" })).toBeVisible();
+  fireEvent.click(screen.getByRole("tab", { name: "首页模块" }));
+  expect(screen.getByText("H01 首屏作品展开")).toBeVisible();
+  fireEvent.click(screen.getByRole("tab", { name: "联系收尾" }));
+  expect(screen.getByText("H09 联系收尾")).toBeVisible();
+  fireEvent.click(screen.getByRole("tab", { name: "服务能力" }));
   fireEvent.click(screen.getByRole("button", { name: "添加能力" }));
   expect(
     screen.getByRole("textbox", { name: "能力标题 1" }),
@@ -246,6 +250,8 @@ it("selects a supported closing icon with a friendly control and saves that key"
     },
   }));
   render(<SettingsEditor initial={config} works={[]} categories={[]} />);
+  fireEvent.click(screen.getByRole("tab", { name: "首页模块" }));
+  fireEvent.click(screen.getByRole("tab", { name: "联系收尾" }));
   fireEvent.click(screen.getByRole("checkbox", { name: "圆形" }));
   fireEvent.click(screen.getByRole("button", { name: "保存草稿" }));
   await waitFor(() =>

@@ -550,7 +550,6 @@ export function CategoriesAdmin() {
   const [categories, setCategories] = useState<Category[]>([]),
     [error, setError] = useState(""),
     [name, setName] = useState(""),
-    [slug, setSlug] = useState(""),
     [tick, setTick] = useState(0),
     [busy, setBusy] = useState(false);
   useEffect(() => {
@@ -579,10 +578,9 @@ export function CategoriesAdmin() {
             try {
               await request("/api/admin/v1/categories", {
                 method: "POST",
-                body: JSON.stringify({ name, slug }),
+                body: JSON.stringify({ name }),
               });
               setName("");
-              setSlug("");
               setTick((t) => t + 1);
             } catch (e) {
               setError(errorMessage(e));
@@ -598,17 +596,9 @@ export function CategoriesAdmin() {
               value={name}
               onChange={setName}
             />
-            <Field
-              label="分类访问标识（创建后固定）"
-              help={adminHelp.category.slug}
-              value={slug}
-              onChange={setSlug}
-            />
           </div>
-          <button
-            className="button"
-            disabled={busy || !name.trim() || !slug.trim()}
-          >
+          <FieldHelp>{adminHelp.category.slug}</FieldHelp>
+          <button className="button" disabled={busy || !name.trim()}>
             新建分类
           </button>
         </form>
@@ -642,8 +632,13 @@ function CategoryEditor({
     [busy, setBusy] = useState(false);
   return (
     <section className="category-item">
+      <p className="category-link">
+        <span className="muted">访问链接（自动生成）</span>
+        <br />
+        <code>/works?category={c.slug}</code>
+      </p>
       <SaveForm
-        label={`分类名称：${c.slug}`}
+        label={`分类名称：${c.name}`}
         help={
           c.system
             ? "系统“其他”分类用于承接未指定分类的作品，名称固定，保持启用。"

@@ -598,19 +598,25 @@ public class PortfolioService {
 
   public ObjectNode createCategory(String name, String slug) {
     String cid = id(), clean = cleanName(name);
-    if (slug == null || !slug.matches("[a-z0-9]+(?:-[a-z0-9]+)*") || slug.length() > 80)
+    boolean automatic = slug == null || slug.isBlank();
+    if (!automatic && (!slug.matches("[a-z0-9]+(?:-[a-z0-9]+)*") || slug.length() > 80))
       throw invalid("分类访问标识格式错误");
     return transaction(
         s -> {
-          for (var c : s.path("categories"))
-            if (c.path("name").asText().equalsIgnoreCase(clean)
-                || c.path("slug").asText().equals(slug)) throw invalid("分类名称或标识已使用");
+          Set<String> usedSlugs = new HashSet<>();
+          for (var c : s.path("categories")) {
+            if (c.path("name").asText().equalsIgnoreCase(clean)) throw invalid("分类名称已使用");
+            usedSlugs.add(c.path("slug").asText());
+          }
+          // Keep accepting explicit slugs from older clients; the current UI sends only the name.
+          String resolvedSlug = automatic ? CategorySlug.generate(clean, usedSlugs) : slug;
+          if (!automatic && usedSlugs.contains(resolvedSlug)) throw invalid("分类标识已使用");
           String time = now();
           s.withArray("categories")
               .addObject()
               .put("id", cid)
               .put("name", clean)
-              .put("slug", slug)
+              .put("slug", resolvedSlug)
               .put("sortOrder", s.path("categories").size() + 1)
               .put("enabled", true)
               .put("system", false)
