@@ -26,6 +26,47 @@ class SettingsTest {
   }
 
   @Test
+  void categoriesGenerateReadableSlugsFromChineseEnglishAndMixedNames() {
+    assertThat(service.createCategory("包装设计", null).path("slug").asText())
+        .isEqualTo("bao-zhuang-she-ji");
+    assertThat(service.createCategory("Brand Design", "").path("slug").asText())
+        .isEqualTo("brand-design");
+    assertThat(service.createCategory("产品 3D", null).path("slug").asText())
+        .isEqualTo("chan-pin-3d");
+    assertThat(service.createCategory("Café & Print", null).path("slug").asText())
+        .isEqualTo("cafe-print");
+  }
+
+  @Test
+  void generatedSlugsUseNumberSuffixesAndReserveOldAndDeletedLinks() {
+    var original = service.createCategory("原分类", "bao-zhuang");
+    service.deleteCategory(original.path("id").asText(), 1);
+    assertThat(service.createCategory("包装", null).path("slug").asText()).isEqualTo("bao-zhuang-2");
+    assertThat(service.createCategory("包 装", null).path("slug").asText()).isEqualTo("bao-zhuang-3");
+    assertThatThrownBy(() -> service.createCategory("包装", null))
+        .isInstanceOf(RuntimeException.class).hasMessageContaining("分类名称");
+  }
+
+  @Test
+  void generatedCategoryLinksStayStableAfterRenaming() {
+    var cat = service.createCategory("摄影", null);
+    var renamed = service.updateCategory(cat.path("id").asText(), PortfolioService.object()
+        .put("expectedRevision", 1).put("name", "商业摄影").put("enabled", true).put("sortOrder", 2));
+    assertThat(renamed.path("slug").asText()).isEqualTo("she-ying");
+  }
+
+  @Test
+  void generatedSlugsRespectLengthLimitAndRejectNamesWithoutReadableCharacters() {
+    var cat = service.createCategory("装".repeat(20), null);
+    assertThat(cat.path("slug").asText()).hasSizeLessThanOrEqualTo(80)
+        .matches("[a-z0-9]+(?:-[a-z0-9]+)*").startsWith("zhuang-zhuang");
+    assertThat(service.createCategory("装".repeat(19) + "妆", null).path("slug").asText())
+        .hasSizeLessThanOrEqualTo(80);
+    assertThatThrownBy(() -> service.createCategory("★★★", null))
+        .isInstanceOf(RuntimeException.class).hasMessageContaining("英文或拼音");
+  }
+
+  @Test
   void renamedCategoriesResolveReferencesAndSystemCategoryCannotBeDisabled() {
     var cat = service.createCategory("包装", "packaging");
     assertThat(cat).isNotNull();

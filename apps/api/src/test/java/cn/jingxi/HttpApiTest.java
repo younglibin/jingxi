@@ -167,6 +167,17 @@ class HttpApiTest {
   }
 
   @Test
+  void createsCategoryFromNameWithoutRequiringASlug() throws Exception {
+    login();
+    var created = request("POST", "/api/admin/v1/categories",
+        "{\"name\":\"平面设计\"}", "application/json", true);
+    assertThat(created.statusCode()).isEqualTo(200);
+    assertThat(json(created).path("slug").asText()).isEqualTo("ping-mian-she-ji");
+    var categories = json(request("GET", "/api/admin/v1/categories", null, null, false));
+    assertThat(categories.path("items").toString()).contains("ping-mian-she-ji");
+  }
+
+  @Test
   void anonymousDraftMediaAndTraversalRemainUnavailable() throws Exception {
     assertThat(request("GET", "/media/unknown/480", null, null, false).statusCode()).isEqualTo(404);
     assertThat(request("GET", "/api/admin/v1/assets/x/image/480", null, null, false).statusCode())
